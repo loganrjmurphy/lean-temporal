@@ -124,9 +124,6 @@ begin
       rw [ge_iff_le, le_add_iff_nonneg_left], apply zero_le}
 end  
 
-
-
-
 end sat 
 
 end formula
