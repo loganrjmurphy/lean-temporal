@@ -128,7 +128,10 @@ end sat
 
 end formula
 
+def equiv (φ ψ : formula AP) : Prop := 
+{σ | σ ⊨ φ } = {σ | σ ⊨ ψ}
 
+notation  φ ≡ ψ := equiv φ ψ 
 
 
 
