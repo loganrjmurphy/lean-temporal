@@ -24,6 +24,11 @@ local notation Φ `&` Ψ := conj Φ Ψ
 local notation `●` Φ := next Φ
 local notation Φ `𝒰` Ψ := until Φ Ψ
 
+def disj (φ ψ : state_formula AP) : state_formula AP := 
+∼(∼ φ & ∼ψ)
+
+local notation φ `⅋` ψ := disj _ φ ψ  
+
 structure TS :=
 (S : Type)
 (H1 : inhabited S)
@@ -63,6 +68,12 @@ notation s `⊨ₛ` Φ := state_sat _ Φ s
 notation π `⊨ₚ ` Φ := path_sat _ Φ π
 
 
+lemma disj_sat {AP : Type} {M : TS AP}  
+(φ ψ : state_formula AP)(s : M.S) : 
+ (s ⊨ₛ (φ ⅋ ψ)) ↔ (s ⊨ₛ φ) ∨ (s ⊨ₛ ψ) :=  
+by { rw disj, repeat {rw state_sat}, finish}
+
+
 def potentially (φ : state_formula AP) : state_formula AP := 
 E(T 𝒰 φ)
 notation `E◆` φ := potentially _ φ 
@@ -83,7 +94,7 @@ notation `A◾` φ := invariantly _ φ
 
 namespace sat 
 
-def potentially {AP : Type} {M : TS AP} 
+lemma potentially {AP : Type} {M : TS AP} 
 (φ : state_formula AP) (s : M.S): 
 (s ⊨ₛ E◆φ) ↔ ∃ π ∈ paths s, ∃ j:ℕ, (subtype.val π j) ⊨ₛ φ := 
 begin 
@@ -97,7 +108,7 @@ begin
      {use j, split, exact H2, intros, trivial}}
 end 
 
-def inevitably {AP : Type} {M : TS AP} 
+lemma inevitably {AP : Type} {M : TS AP} 
 (φ : state_formula AP) (s : M.S) : 
 (s ⊨ₛ A◆φ) ↔ ∀ π ∈ paths s, ∃ j : ℕ, (subtype.val π j) ⊨ₛ φ := 
 begin
@@ -112,7 +123,7 @@ begin
 end  
 
 
-def potentially_always {AP : Type} {M : TS AP}
+lemma potentially_always {AP : Type} {M : TS AP}
 (φ : state_formula AP) (s : M.S) : 
 (s ⊨ₛ E◾φ) ↔ (∃ π ∈ paths s, ∀ j : ℕ, (subtype.val π j) ⊨ₛ φ) := 
 begin 
@@ -142,11 +153,27 @@ def equiv {AP : Type} (φ ψ: state_formula AP) : Prop :=
 
 notation φ ` ≡ ` ψ := equiv φ ψ  
 
+
+lemma forall_until_expansion (φ ψ : state_formula AP) : 
+    A(φ 𝒰 ψ) ≡ (ψ ⅋ (φ & A●A(φ 𝒰 ψ))) := 
+begin
+    intro M, ext, repeat {rw sat_set}, simp,
+    rw [state_sat, path_sat], simp,
+    rw disj_sat, repeat {rw state_sat},
+    rw path_sat, rw state_sat, rw path_sat,
+    simp, sorry
+end 
+
+
+
+
+
+
 lemma forall_next_dual (φ : state_formula AP) : 
     (A●φ) ≡ (∼E(●∼φ)) := 
 begin
     intros M, ext, repeat {rw sat_set}, simp,
-    rw [state_sat,path_sat],
+    rw [state_sat,path_sat], 
     repeat {rw state_sat}, rw [path_sat, state_sat],
     simp
 end 
@@ -179,19 +206,18 @@ end
 
 
 lemma until_dual_fst (φ ψ : state_formula AP) : 
-    A(φ 𝒰 ψ) ≡ (∼E((∼ ψ) 𝒰 ((∼ φ) & (∼ ψ))) & ∼ E◾ (∼ ψ)) := 
+    A(φ 𝒰 ψ) ≡ ((∼E(∼ ψ 𝒰 (∼ φ & ∼ ψ))) & ∼ E◾ ∼ψ) := 
     begin
         intros M, ext, repeat {rw sat_set}, simp,
         repeat {rw [state_sat]},
         repeat {rw [path_sat]}, simp,
         split, {
-            intro H1,split,{
+            intro H1, split,{
                 intros π H2 i H3,
                 repeat {rw state_sat at H3},
                 rw state_sat, simp at *,
-                replace H1 := H1 π H2,
-                cases H1 with j Hj,
-                sorry 
+                replace H1 := H1 π H2,sorry
+                 
             },{
                 sorry
             }
