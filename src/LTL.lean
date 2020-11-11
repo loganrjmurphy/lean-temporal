@@ -37,11 +37,11 @@ local infix ` ⇔ ` : 50 := formula.bimpl _
 
 def eventually (φ : formula AP) : formula AP := 
 formula.T 𝒰 φ 
-local notation ` ◆` : 100 := formula.eventually _
+local notation ` ◆`  := formula.eventually _
 
 def always (φ : formula AP) : formula AP := 
 ∼◆∼φ
-local notation ` ◾` : 100 :=formula.always _
+local notation ` ◾` :=formula.always _
 
 def inf_word : Type := stream (set AP)
 
@@ -124,15 +124,13 @@ begin
       rw [ge_iff_le, le_add_iff_nonneg_left], apply zero_le}
 end  
 
-end sat 
-
-end formula
-
 def equiv (φ ψ : formula AP) : Prop := 
 {σ | σ ⊨ φ } = {σ | σ ⊨ ψ}
 
-notation  φ ≡ ψ := equiv φ ψ 
+notation  φ ≡ ψ := equiv _ φ ψ 
 
+end sat 
 
+end formula
 
 end LTL
